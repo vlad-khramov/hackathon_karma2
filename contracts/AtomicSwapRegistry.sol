@@ -62,7 +62,7 @@ contract AtomicSwapRegistry {
     }
 
     modifier isRedeemable(bytes32 _hashedSecret, string _secret) {
-        require(keccak256(_secret) == _hashedSecret);
+        require(sha256(_secret) == _hashedSecret);
         require(block.timestamp < swaps[_hashedSecret].initTimestamp + swaps[_hashedSecret].refundTime);
         require(swaps[_hashedSecret].emptied == false);
         _;

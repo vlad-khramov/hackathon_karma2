@@ -4,6 +4,8 @@ import expectThrow from "./helpers/expectThrow.js";
 import {withRollback} from "./helpers/EVMSnapshots";
 import assertBnEq from "./helpers/assertBigNumbersEqual";
 
+const sha256 = x => "0x" + require('js-sha256')(x);
+
 const AtomicSwapRegistry = artifacts.require("AtomicSwapRegistry.sol");
 const Exchange = artifacts.require("Exchange.sol");
 const l = console.log;
@@ -40,7 +42,7 @@ contract('Exchange', function (accounts) {
 
   it("test buy after sell orders", async function () {
     const secret = '123';
-    const secretHash = web3.sha3(secret);
+    const secretHash = sha256(secret);
 
 
     let ownerInitBalane = await web3.eth.getBalance(role.ex_owner);
@@ -110,9 +112,9 @@ contract('Exchange', function (accounts) {
 
   it("test buy after sell orders without price and than sell", async function () {
     const secret = '123';
-    const secretHash = web3.sha3(secret);
+    const secretHash = sha256(secret);
     const secret2 = '1234';
-    const secretHash2 = web3.sha3(secret2);
+    const secretHash2 = sha256(secret2);
 
 
     let ownerInitBalane = await web3.eth.getBalance(role.ex_owner);
