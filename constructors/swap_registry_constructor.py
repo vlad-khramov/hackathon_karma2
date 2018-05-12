@@ -1,19 +1,144 @@
+#Cross chain atomic swap registry
+
+from smartz.api.constructor_engine import ConstructorInstance
+
+
+class Constructor(ConstructorInstance):
+
+    def get_version(self):
+        return {
+            "result": "success",
+            "version": 1
+        }
+
+    def get_params(self):
+        json_schema = {
+            "type": "object",
+            "required": ['dummy'],
+            "additionalProperties": False,
+
+            "properties": {
+                'dummy': { "type": 'string'}
+            }
+        }
+
+        ui_schema = {
+        }
+
+        return {
+            "result": "success",
+            'schema': json_schema,
+            'ui_schema': ui_schema
+        }
+
+    def construct(self, fields):
+        return {
+            'result': "success",
+            'source': self.__class__._TEMPLATE,
+            'contract_name': "AtomicSwapRegistry"
+        }
+
+    def post_construct(self, fields, abi_array):
+
+        function_specs = {
+            'swaps': {
+                'title': 'Show swap info',
+                'description': 'Show info about existing swap',
+                'inputs': [
+                    {'title': 'Hash of secret (sha256)'},  # todo widget
+                ],
+                'outputs': [
+                    {'title': 'Initial timestamp'},
+                    {'title': 'Refund time'},
+                    {'title': 'Hash of secret (sha256)'},
+                    {'title': 'Secret'},
+                    {'title': 'Initiator'},
+                    {'title': 'Participant'},
+                    {'title': 'Wei amount'},
+                    {'title': 'Is transfered'},
+                    {'title': 'Internal state'},
+                ],
+
+                'sorting_order': 10
+            },
+
+            'initiate': {
+                'title': 'Initiate atomic swap',
+
+                'inputs': [
+                    {'title': 'Initiator', 'description': 'Address in this chain', 'ui:widget': 'myAddress'},
+                    {'title': 'Refund time', 'description': 'After this time since swap init you can refund ether'},
+                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringSha256'},
+                    {'title': 'Participant', 'description': 'Address in this chain'},
+                ],
+
+                'sorting_order': 20
+            },
+
+            'participate': {
+                'title': 'Participate in started in other chain atomic swap',
+
+                'inputs': [
+                    {'title': 'Participant', 'description': 'Address in this chain', 'ui:widget': 'myAddress'},
+                    {'title': 'Refund time', 'description': 'After this time since swap init you can refund ether'},
+                    {'title': 'Hash of secret (sha256)', 'description': 'In format 0x123abcd123'},
+                    {'title': 'Initiator', 'description': 'Address in this chain'},
+                ],
+
+                'sorting_order': 30
+            },
+
+            'redeem': {
+                'title': 'Redeem ether',
+                'description': 'If you are the Initiator - redeem after checking swap contract in other chain. '
+                               'If you are the Participant - after Initiator hade redeemed funds and had showed secret',
+
+                'inputs': [
+                    {'title': 'Secret'},
+                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringSha256'},
+                ],
+
+                'sorting_order': 40
+            },
+
+            'refund': {
+                'title': 'Refund ether',
+                'description': 'If deal was canceled',
+
+                'inputs': [
+                    {'title': 'Hash of secret (sha256)'},
+                ],
+
+                'sorting_order': 50
+            },
+
+        }
+
+        return {
+            "result": "success",
+            'function_specs': function_specs,
+            'dashboard_functions': ['m_numOwners', 'm_multiOwnedRequired']
+        }
+
+
+    # language=Solidity
+    _TEMPLATE = """
 /**
- *
+ * 
  *  MIT License
- *
+ *  
  *  Copyright (c) 2018 Vladimir Khramov
- *
+ *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *
+ *  
  *  The above copyright notice and this permission notice shall be included in all
  *  copies or substantial portions of the Software.
- *
+ *  
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -169,3 +294,4 @@ contract AtomicSwapRegistry {
     }
 
 }
+    """
