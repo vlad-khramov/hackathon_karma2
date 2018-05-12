@@ -27,7 +27,7 @@ contract AtomicSwapRegistry {
         uint initTimestamp;
         uint refundTime;
         bytes32 hashedSecret;
-        bytes32 secret;
+        string secret;
         address initiator;
         address participant;
         uint256 value;
@@ -61,7 +61,7 @@ contract AtomicSwapRegistry {
         _;
     }
 
-    modifier isRedeemable(bytes32 _hashedSecret, bytes32 _secret) {
+    modifier isRedeemable(bytes32 _hashedSecret, string _secret) {
         require(keccak256(_secret) == _hashedSecret);
         require(block.timestamp < swaps[_hashedSecret].initTimestamp + swaps[_hashedSecret].refundTime);
         require(swaps[_hashedSecret].emptied == false);
@@ -113,7 +113,7 @@ contract AtomicSwapRegistry {
         Participated(_initiator, _participant, _hashedSecret, msg.value);
     }
 
-    function redeem(bytes32 _secret, bytes32 _hashedSecret) public
+    function redeem(string _secret, bytes32 _hashedSecret) public
         isRedeemable(_hashedSecret, _secret)
     {
         swaps[_hashedSecret].emptied = true;
