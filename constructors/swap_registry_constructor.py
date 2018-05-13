@@ -35,7 +35,7 @@ class Constructor(ConstructorInstance):
         return {
             'result': "success",
             'source': self.__class__._TEMPLATE,
-            'contract_name': "AtomicSwapRegistry"
+            'contract_name': "AtomicSwapRegistryConstructed"
         }
 
     def post_construct(self, fields, abi_array):
@@ -293,5 +293,13 @@ contract AtomicSwapRegistry {
 
     }
 
+}
+
+contract AtomicSwapRegistryConstructed is AtomicSwapRegistry {
+    function AtomicSwapRegistryConstructed() 
+        public payable 
+    {
+        %payment_code%
+    }
 }
     """
