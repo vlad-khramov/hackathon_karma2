@@ -56,7 +56,7 @@ class Constructor(ConstructorInstance):
             },
 
 
-            'bands': {
+            'orrders': {
                 'title': 'Order info',
                 'description': 'Show info about existing order',
                 'inputs': [
