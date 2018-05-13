@@ -110,6 +110,8 @@ contract Exchange is Ownable {
 
                 uint spread = _priceInWeiForOneUnit.sub(order.priceInWei).mul(order.currencyCount).div(1 ether);
                 owner.transfer(spread);
+            } else {
+                //todo split order
             }
         }
 
@@ -169,6 +171,8 @@ contract Exchange is Ownable {
                 uint spread = order.priceInWei.sub(_priceInWeiForOneUnit).mul(order.currencyCount).div(1 ether);
                 owner.transfer(spread);
                 //todo how to do better?
+            } else {
+                //todo split order
             }
         }
 
