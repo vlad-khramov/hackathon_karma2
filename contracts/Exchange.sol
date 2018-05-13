@@ -54,6 +54,8 @@ contract Exchange is Ownable {
         uint priceInWei;
 
         OpType opType;
+        bool isFilled;
+        bytes32 hash;
     }
 
     /*****************************************************************/
@@ -93,14 +95,20 @@ contract Exchange is Ownable {
                 continue;
             }
 
-            //todo split orders
-            if (order.currencyCount == _currencyCount) {
+            if (order.isFilled) {
+                continue;
+            }
 
-                uint weiCount = order.priceInWei.mul(_currencyCount).div(1 ether);
-                swapRegistry.initiate.value(weiCount)(msg.sender, 7200, getNextHash(msg.sender), order.initiator);
+            if (order.currencyCount <= restCurrencyCount) {
+                uint weiCount = order.priceInWei.mul(order.currencyCount).div(1 ether);
+
+                bytes32 currentHash = getNextHash(msg.sender);
+                swapRegistry.initiate.value(weiCount)(msg.sender, 7200, currentHash, order.initiator);
+                order.isFilled = true;
+                order.hash = currentHash;
                 restCurrencyCount = restCurrencyCount.sub(order.currencyCount);
 
-                uint spread = _priceInWeiForOneUnit.sub(order.priceInWei).mul(_currencyCount).div(1 ether);
+                uint spread = _priceInWeiForOneUnit.sub(order.priceInWei).mul(order.currencyCount).div(1 ether);
                 owner.transfer(spread);
             }
         }
@@ -111,7 +119,9 @@ contract Exchange is Ownable {
                     msg.sender,
                     restCurrencyCount,
                     _priceInWeiForOneUnit,
-                    OpType.BUY
+                    OpType.BUY,
+                    false,
+                    0
                 )
             );
         }
@@ -142,15 +152,21 @@ contract Exchange is Ownable {
                 continue;
             }
 
-            //todo split orders
-            if (order.currencyCount == _currencyCount) {
+            if (order.isFilled) {
+                continue;
+            }
 
-                uint weiCount = _priceInWeiForOneUnit.mul(_currencyCount).div(1 ether);
+            if (order.currencyCount <= restCurrencyCount) {
 
-                swapRegistry.initiate.value(weiCount)(order.initiator, 7200, getNextHash(order.initiator), msg.sender);
+                uint weiCount = _priceInWeiForOneUnit.mul(order.currencyCount).div(1 ether);
+
+                bytes32 currentHash = getNextHash(order.initiator);
+                swapRegistry.initiate.value(weiCount)(order.initiator, 7200, currentHash, msg.sender);
+                order.isFilled = true;
+                order.hash = currentHash;
                 restCurrencyCount = restCurrencyCount.sub(order.currencyCount);
 
-                uint spread = order.priceInWei.sub(_priceInWeiForOneUnit).mul(_currencyCount).div(1 ether);
+                uint spread = order.priceInWei.sub(_priceInWeiForOneUnit).mul(order.currencyCount).div(1 ether);
                 owner.transfer(spread);
                 //todo how to do better?
             }
@@ -162,7 +178,9 @@ contract Exchange is Ownable {
                     msg.sender,
                     restCurrencyCount,
                     _priceInWeiForOneUnit,
-                    OpType.SELL
+                    OpType.SELL,
+                    false,
+                    0
                 )
             );
         }

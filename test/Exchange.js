@@ -155,6 +155,47 @@ contract('Exchange', function (accounts) {
 
   });
 
+  it("test buy with split", async function () {
+    const secret = '123';
+    const secretHash = sha256(secret);
+    const secret2 = '1234';
+    const secretHash2 = sha256(secret2);
+
+
+    let ownerInitBalane = await web3.eth.getBalance(role.ex_owner);
+
+    await ex.deposit({value: web3.toWei(1), from: role.trader1});
+    await ex.deposit({value: web3.toWei(1), from: role.trader2});
+    await ex.deposit({value: web3.toWei(1), from: role.trader3});
+    await ex.deposit({value: web3.toWei(1), from: role.trader4});
+
+
+    //sell 1 kovan finney with price 0.5 ether for 1 kovan ether
+    await ex.sell(bc.eth_kovan, web3.toWei(0.4, 'finney'), web3.toWei(0.7), {from: role.trader1});
+    await ex.sell(bc.eth_kovan, web3.toWei(0.3, 'finney'), web3.toWei(0.6), {from: role.trader2});
+
+    await ex.addHashes(secretHash, secretHash2, 0, 0, 0, {from: role.trader3});
+
+    //want to buy 1 kovan finney with price 0.7 ether for 1 kovan ether
+    await ex.buy(bc.eth_kovan, web3.toWei(1, 'finney'), web3.toWei(0.7), {from: role.trader3});
+
+
+    assertBnEq(0, await ex.myHashesCount({from: role.trader3}));
+    assertBnEq(web3.toWei(999.3, 'finney'), await ex.myDeposit({from: role.trader3}));
+    assertBnEq(web3.toWei(/*4000 - 0.4*0.7-0.3*0.7*/3999.51, 'finney'), await web3.eth.getBalance(ex.address));
+    //spread (0.7-0.6)*0.3 was sent to owner
+    assertBnEq(ownerInitBalane.add(web3.toWei(0.03, 'finney')), await web3.eth.getBalance(role.ex_owner));
+
+
+    //next test swap registry
+    // 0.7*0.4 + 0.6*.0.3
+    assertBnEq(web3.toWei(0.46, 'finney'), await web3.eth.getBalance(swReg.address));
+    assert.equal((await swReg.swaps(secretHash))[5], role.trader2);//participant
+    assert.equal((await swReg.swaps(secretHash2))[5], role.trader1);//participant
+
+  });
+
+
 
 
 });

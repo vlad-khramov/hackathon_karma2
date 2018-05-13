@@ -56,7 +56,7 @@ class Constructor(ConstructorInstance):
             },
 
 
-            'orrders': {
+            'orders': {
                 'title': 'Order info',
                 'description': 'Show info about existing order',
                 'inputs': [
@@ -68,6 +68,8 @@ class Constructor(ConstructorInstance):
                     {'title': 'Second blockchain currency amount (in minimal particles, eg satoshi, wei)'},
                     {'title': 'Price in wei of one currency unit (bitcoin, ether)'},
                     {'title': 'Order type (Buy=0, Sell=1)'},
+                    {'title': 'Is filled'},
+                    {'title': 'Hash of secret for atomic swap'},
                 ],
 
                 'sorting_order': 10
@@ -256,6 +258,7 @@ contract Ownable {
 }
 
 
+
 contract Exchange is Ownable {
     using SafeMath for uint256;
 
@@ -274,24 +277,26 @@ contract Exchange is Ownable {
 
     enum OpType {BUY, SELL}
 
-    struct Band {
+    struct Order {
         address initiator;
 
         uint currencyCount;
         uint priceInWei;
 
         OpType opType;
+        bool isFilled;
+        bytes32 hash;
     }
 
     /*****************************************************************/
 
-    mapping(uint8 => Band[]) public bands;
+    mapping(uint8 => Order[]) public orders;
 
     mapping(address => bytes32[]) hashes;
 
     mapping (address => uint) public deposits;
 
-    AtomicSwapRegistry swapRegistry;
+    AtomicSwapRegistry public swapRegistry;
 
     /*****************************************************************/
 
@@ -304,41 +309,49 @@ contract Exchange is Ownable {
 
         uint restCurrencyCount = _currencyCount;
         // todo optimization :(
-        for(uint i=0; i<bands[_secondBlockchain].length; i++) {
+        for(uint i=0; i<orders[_secondBlockchain].length; i++) {
             if (restCurrencyCount==0) {
                 continue;
             }
             require(hashes[msg.sender].length>0);//todo more than orders
 
-            Band storage band = bands[_secondBlockchain][i];
-            if (band.opType==OpType.BUY) {
+            Order storage order = orders[_secondBlockchain][i];
+            if (order.opType==OpType.BUY) {
                 continue;
             }
 
             //todo minimum price, since not we get first suitable price
-            if (band.priceInWei > _priceInWeiForOneUnit) {
+            if (order.priceInWei > _priceInWeiForOneUnit) {
                 continue;
             }
 
-            //todo split bands/orders
-            if (band.currencyCount == _currencyCount) {
+            if (order.isFilled) {
+                continue;
+            }
 
-                uint weiCount = band.priceInWei.mul(_currencyCount).div(1 ether);
-                swapRegistry.initiate.value(weiCount)(msg.sender, 7200, getNextHash(msg.sender), band.initiator);
-                restCurrencyCount = restCurrencyCount.sub(band.currencyCount);
+            if (order.currencyCount <= restCurrencyCount) {
+                uint weiCount = order.priceInWei.mul(order.currencyCount).div(1 ether);
 
-                uint spread = _priceInWeiForOneUnit.sub(band.priceInWei).mul(_currencyCount).div(1 ether);
+                bytes32 currentHash = getNextHash(msg.sender);
+                swapRegistry.initiate.value(weiCount)(msg.sender, 7200, currentHash, order.initiator);
+                order.isFilled = true;
+                order.hash = currentHash;
+                restCurrencyCount = restCurrencyCount.sub(order.currencyCount);
+
+                uint spread = _priceInWeiForOneUnit.sub(order.priceInWei).mul(order.currencyCount).div(1 ether);
                 owner.transfer(spread);
             }
         }
 
         if (restCurrencyCount > 0) {
-            bands[_secondBlockchain].push(
-                Band(
+            orders[_secondBlockchain].push(
+                Order(
                     msg.sender,
                     restCurrencyCount,
                     _priceInWeiForOneUnit,
-                    OpType.BUY
+                    OpType.BUY,
+                    false,
+                    0
                 )
             );
         }
@@ -351,45 +364,53 @@ contract Exchange is Ownable {
 
         uint restCurrencyCount = _currencyCount;
         // todo optimization :(
-        for(uint i=0; i<bands[_secondBlockchain].length; i++) {
+        for(uint i=0; i<orders[_secondBlockchain].length; i++) {
             if (restCurrencyCount==0) {
                 continue;
             }
-            Band storage band = bands[_secondBlockchain][i];
-            if (band.opType==OpType.SELL) {
+            Order storage order = orders[_secondBlockchain][i];
+            if (order.opType==OpType.SELL) {
                 continue;
             }
 
             //todo minimum price, since not we get first suitable price
-            if (band.priceInWei < _priceInWeiForOneUnit) {
+            if (order.priceInWei < _priceInWeiForOneUnit) {
                 continue;
             }
 
-            if (hashes[band.initiator].length==0) {
+            if (hashes[order.initiator].length==0) {
                 continue;
             }
 
-            //todo split bands/orders
-            if (band.currencyCount == _currencyCount) {
+            if (order.isFilled) {
+                continue;
+            }
 
-                uint weiCount = _priceInWeiForOneUnit.mul(_currencyCount).div(1 ether);
+            if (order.currencyCount <= restCurrencyCount) {
 
-                swapRegistry.initiate.value(weiCount)(band.initiator, 7200, getNextHash(band.initiator), msg.sender);
-                restCurrencyCount = restCurrencyCount.sub(band.currencyCount);
+                uint weiCount = _priceInWeiForOneUnit.mul(order.currencyCount).div(1 ether);
 
-                uint spread = band.priceInWei.sub(_priceInWeiForOneUnit).mul(_currencyCount).div(1 ether);
+                bytes32 currentHash = getNextHash(order.initiator);
+                swapRegistry.initiate.value(weiCount)(order.initiator, 7200, currentHash, msg.sender);
+                order.isFilled = true;
+                order.hash = currentHash;
+                restCurrencyCount = restCurrencyCount.sub(order.currencyCount);
+
+                uint spread = order.priceInWei.sub(_priceInWeiForOneUnit).mul(order.currencyCount).div(1 ether);
                 owner.transfer(spread);
                 //todo how to do better?
             }
         }
 
         if (restCurrencyCount > 0) {
-            bands[_secondBlockchain].push(
-                Band(
+            orders[_secondBlockchain].push(
+                Order(
                     msg.sender,
                     restCurrencyCount,
                     _priceInWeiForOneUnit,
-                    OpType.SELL
+                    OpType.SELL,
+                    false,
+                    0
                 )
             );
         }
