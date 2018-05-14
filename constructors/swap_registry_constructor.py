@@ -68,7 +68,7 @@ class Constructor(ConstructorInstance):
                 'inputs': [
                     {'title': 'Initiator', 'description': 'Address in this chain', 'ui:widget': 'myAddress'},
                     {'title': 'Refund time', 'description': 'After this time since swap init you can refund ether'},
-                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringSha256'},
+                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringHashSha256'},
                     {'title': 'Participant', 'description': 'Address in this chain'},
                 ],
 
@@ -95,7 +95,7 @@ class Constructor(ConstructorInstance):
 
                 'inputs': [
                     {'title': 'Secret'},
-                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringSha256'},
+                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringHashSha256'},
                 ],
 
                 'sorting_order': 40

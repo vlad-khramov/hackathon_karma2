@@ -79,11 +79,11 @@ class Constructor(ConstructorInstance):
                 'title': 'Add new hashes',
                 'description': 'For using in atomic swaps',
                 'inputs': [
-                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringSha256'},
-                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringSha256'},
-                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringSha256'},
-                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringSha256'},
-                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringSha256'},
+                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringHashSha256'},
+                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringHashSha256'},
+                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringHashSha256'},
+                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringHashSha256'},
+                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringHashSha256'},
 
                 ],
 
