@@ -66,9 +66,9 @@ class Constructor(ConstructorInstance):
                 'title': 'Initiate atomic swap',
 
                 'inputs': [
-                    {'title': 'Initiator', 'description': 'Address in this chain', 'ui:widget': 'myAddress'},
+                    {'title': 'Initiator', 'description': 'Address in this chain'},
                     {'title': 'Refund time', 'description': 'After this time since swap init you can refund ether'},
-                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringHashSha256'},
+                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringHash', "ui:options": {"algorithm": "sha256"}},
                     {'title': 'Participant', 'description': 'Address in this chain'},
                 ],
 
@@ -79,7 +79,7 @@ class Constructor(ConstructorInstance):
                 'title': 'Participate in started in other chain atomic swap',
 
                 'inputs': [
-                    {'title': 'Participant', 'description': 'Address in this chain', 'ui:widget': 'myAddress'},
+                    {'title': 'Participant', 'description': 'Address in this chain'},
                     {'title': 'Refund time', 'description': 'After this time since swap init you can refund ether'},
                     {'title': 'Hash of secret (sha256)', 'description': 'In format 0x123abcd123'},
                     {'title': 'Initiator', 'description': 'Address in this chain'},
@@ -95,7 +95,7 @@ class Constructor(ConstructorInstance):
 
                 'inputs': [
                     {'title': 'Secret'},
-                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringHashSha256'},
+                    {'title': 'Hash of secret (sha256)', 'description': 'Just type the secret. Hash will be calculated automatically', 'ui:widget': 'stringHash', "ui:options": {"algorithm": "sha256"}},
                 ],
 
                 'sorting_order': 40
